@@ -1,0 +1,34 @@
+{
+  "name": "animated-markov",
+  "version": "0.0.1",
+  "description": "Animated Markov Chain Rooms for AT Linear Algebra Class",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx webpack --progress --config webpack.config.js",
+    "start": "node ./dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gary-kim/animated-markov.git"
+  },
+  "author": "Gary Kim",
+  "license": "SEE LICENSE IN LICENSE",
+  "bugs": {
+    "url": "https://github.com/gary-kim/animated-markov/issues"
+  },
+  "homepage": "https://github.com/gary-kim/animated-markov#readme",
+  "dependencies": {
+    "@babel/core": "^7.7.5",
+    "@babel/preset-env": "^7.7.6",
+    "babel-loader": "^8.0.6",
+    "css-loader": "^3.2.1",
+    "mathjs": "^6.2.5",
+    "vue": "^2.6.10",
+    "vue-loader": "^15.7.2",
+    "vue-style-loader": "^4.1.2",
+    "vue-template-compiler": "^2.6.10",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10"
+  }
+}
