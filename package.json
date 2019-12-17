@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx webpack --progress --config webpack.config.js",
-    "start": "node ./dist/index.js"
+    "watch": "npx webpack --progress --watch --mode=development --config webpack.config.js"
   },
   "repository": {
     "type": "git",
@@ -22,10 +22,14 @@
     "@babel/core": "^7.7.5",
     "@babel/preset-env": "^7.7.6",
     "babel-loader": "^8.0.6",
+    "copy-webpack-plugin": "^5.1.1",
     "css-loader": "^3.2.1",
+    "fast-deep-equal": "^3.1.1",
+    "get-in-range": "^0.2.4",
     "less": "^3.10.3",
     "less-loader": "^5.0.0",
     "mathjs": "^6.2.5",
+    "mousetrap": "^1.6.3",
     "vue": "^2.6.10",
     "vue-loader": "^15.7.2",
     "vue-style-loader": "^4.1.2",

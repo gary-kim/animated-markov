@@ -1,5 +1,6 @@
 const path = require('path');
 const { VueLoaderPlugin } = require('vue-loader');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     entry: {
@@ -31,6 +32,12 @@ module.exports = {
     },
     plugins: [
         new VueLoaderPlugin(),
+        new CopyPlugin([
+            {
+                from: "./index.html",
+                to: "index.html"
+            }
+        ])
     ],
     resolve: {
         extensions: ['.js', '.vue'],

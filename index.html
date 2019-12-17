@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Animated Markov</title>
+</head>
+<body>
+<canvas id="canvas" height="100%" width="100%"></canvas>
+<div id="message">
+
+</div>
+<style>
+    html {
+        overflow: hidden;
+        background: #ffee7a;
+    }
+    div#message {
+        overflow-wrap: break-word;
+        position: absolute;
+        text-align: right;
+        top: 10px;
+        right: 10px;
+    }
+    #canvas {
+        background: white;
+    }
+</style>
+<script src="./index.js"></script>
+</body>
+</html>
