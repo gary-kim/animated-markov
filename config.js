@@ -8,6 +8,7 @@ const config = {
     "mode": {
         "running": 0,
         "playing": 1,
+        "setup": 2
     },
     "walls": {
         "open": 0,

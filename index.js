@@ -17,6 +17,8 @@ let currentDim = {
 
 let counter = 0;
 
+let ignorescroll = false;
+
 let walls = [];
 let cells = [[0]];
 
@@ -55,12 +57,18 @@ function init() {
             setDimensions(cells[0].length, cells.length - 1);
         }
     });
+    Mousetrap.bind('m', () => {
+        status.mode = (status.mode + 1) % 3;
+        draw();
+    });
+    Mousetrap.bind('p', () => {
+        progress();
+    });
 
 
     // Click Handler
     canvas.addEventListener('DOMMouseScroll', e => {
-        let change = e.detail;
-        let position = identifyCell(e.clientX, e.clientY);
+        handleScroll(e.clientX, e.clientY, e.detail);
         // TODO: Complete adding and removing from cells
     });
     canvas.addEventListener('click', e => {
@@ -111,10 +119,13 @@ function draw() {
 
     ctx.save();
     ctx.style = 'rgb(0, 0, 0)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     // Draw cells
     for(let c = 0; c < cells.length; c++) {
         for(let r = 0; r < cells[c].length; r++) {
             ctx.strokeRect(dim.width * c, dim.height * r, dim.width, dim.height);
+            ctx.fillText(cells[c][r].toFixed(1), dim.width * (c + 0.5), dim.height * (r + 0.5));
         }
     }
 
@@ -167,6 +178,17 @@ function oneThirdLine(from, to) {
 }
 
 /**
+ * Make a step with the markov chain
+ */
+function progress() {
+    const markov = generateTransitionMatrix();
+    let state = generateState();
+    let newState = math.multiply(state, markov);
+    stateToCells(newState);
+    draw();
+}
+
+/**
  * Identify what cell was clicked from the coordinate position
  *
  * @param {number} x x coordinate on canvas
@@ -196,6 +218,31 @@ function cellDimensions() {
     return {
         width: canvas.width / cells.length,
         height: canvas.height / cells[0].length
+    }
+}
+
+/**
+ * Generate a n x 1 matrix of the current state
+ * @returns {Array}
+ */
+function generateState() {
+    let matrix = [];
+    for (let c = 0; c < cells.length; c++) {
+        for (let r = 0; r < cells[0].length; r++) {
+            matrix.push(cells[c][r]);
+        }
+    }
+    return matrix;
+}
+
+/**
+ * Converts a given n x 1 matrix of the current state into the 2D array used for drawing
+ * @param {Array} state the given state matrix
+ */
+function stateToCells(state) {
+
+    for(let i = 0; i < state.length; i++) {
+        cells[Math.floor(i / cells.length)][Math.floor(i % cells.length)] = state[i];
     }
 }
 
@@ -266,6 +313,29 @@ function generateTransitionMatrix() {
 function sizeCanvas() {
     canvas.height = window.innerHeight * 0.8;
     canvas.width = window.innerWidth * 0.8;
+    draw();
+}
+
+/**
+ * Handles a scroll at a given coordinate in the canvas
+ * @param {Number} x x coordinate
+ * @param {Number} y y coordinate
+ * @param {Number} scroll
+ */
+function handleScroll(x, y, scroll) {
+    const cell = identifyCell(x, y);
+    if (ignorescroll) {
+        return;
+    }
+    ignorescroll = true;
+    let change = scroll >= 0 ? -1 : 1;
+    if (status.mode === config.mode.setup) {
+        cells[cell.c][cell.r] += change;
+    }
+    if (cells[cell.c][cell.r] < 0) {
+        cells[cell.c][cell.r] = 0;
+    }
+    setTimeout(() => {ignorescroll = false}, 50);
     draw();
 }
 
