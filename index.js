@@ -10,6 +10,11 @@ import config from './config';
 import deepEqual from 'fast-deep-equal/es6';
 const gir = require('get-in-range');
 
+let currentDim = {
+  height: 100,
+  width: 100
+};
+
 let counter = 0;
 
 let walls = [];
@@ -61,7 +66,8 @@ function init() {
     canvas.addEventListener('click', e => {
         let x = e.clientX;
         let y = e.clientY;
-        handleClick(x, y);
+        let t = handleClick(x, y);
+        draw();
     });
 
     sizeCanvas();
@@ -109,9 +115,54 @@ function draw() {
             ctx.strokeRect(dim.width * c, dim.height * r, dim.width, dim.height);
         }
     }
-    ctx.restore();
 
+    ctx.style = 'rgb(0, 0, 0)';
+    // Draw in non closed walls
+    for(let i = 0; i < walls.length; i++) {
+        let wall = walls[i];
+        let wallCenter = {
+            x: (math.mean(wall.from.c , wall.to.c) + 0.5) * dim.width,
+            y: (math.mean(wall.from.r, wall.to.r) + 0.5) * dim.height
+        };
+        let toWall = {
+            x: (wall.to.c + 0.5) * dim.width,
+            y: (wall.to.r + 0.5) * dim.height
+        };
+        let fromWall = {
+            x: (wall.from.c + 0.5) * dim.width,
+            y: (wall.from.r + 0.5) * dim.width
+        };
+        console.log(wallCenter);
+        // vertical describes whether the two cells are vertical or horizontal
+        let vertical = wall.from.c === wall.to.c;
+        if (vertical) {
+            ctx.clearRect(wallCenter.x - (dim.width / 4), wallCenter.y - 20, dim.width / 2, 40);
+            if (wall.type === config.walls.oneway) {
+                oneThirdLine({x: wallCenter.x - (dim.width / 4), y: wallCenter.y}, {x: toWall.x, y: toWall.y});
+                oneThirdLine({x: wallCenter.x + (dim.width / 4), y: wallCenter.y}, {x: toWall.x, y: toWall.y});
+            }
+        } else {
+            ctx.clearRect(wallCenter.x - 20, wallCenter.y - (dim.height / 4), 40, (dim.height / 2));
+            if (wall.type === config.walls.oneway) {
+                oneThirdLine({x: wallCenter.x, y: wallCenter.y + (dim.height / 4)}, {x: toWall.x, y: toWall.y});
+                oneThirdLine({x: wallCenter.x, y: wallCenter.y - (dim.height / 4)}, {x: toWall.x, y: toWall.y});
+            }
+        }
+    }
+    ctx.restore();
     // TODO: Draw oneway and open walls
+}
+
+/**
+ * Draws a line that goes one third of the distance from "from" to "to"
+ * @param {{x: number, y: number}} from
+ * @param {{x: number, y: number}} to
+ */
+function oneThirdLine(from, to) {
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(math.mean(from.x, from.x, to.x), math.mean(from.y, from.y, to.y));
+    ctx.stroke();
 }
 
 /**
@@ -124,9 +175,14 @@ function draw() {
  */
 function identifyCell(x, y) {
     const dim = cellDimensions();
+    console.log(`cell Dim: ${JSON.stringify(dim)}`)
+    console.log({
+        r: math.floor(y / dim.width),
+        c: math.floor(x / dim.height)
+    })
     return {
-        r: parseInt(x / dim.width),
-        c: parseInt(y / dim.height)
+        r: math.floor(y / dim.height),
+        c: math.floor(x / dim.width)
     };
 }
 
@@ -148,6 +204,7 @@ function cellDimensions() {
 function sizeCanvas() {
     canvas.height = window.innerHeight * 0.8;
     canvas.width = window.innerWidth * 0.8;
+    draw();
 }
 
 /**
@@ -157,6 +214,8 @@ function sizeCanvas() {
  */
 function handleClick(x, y) {
     const cell = identifyCell(x, y);
+    console.log(`Clicking ${JSON.stringify(cell)}`)
+    console.log(`Currently: ${JSON.stringify(walls)}`)
     let related = walls.filter(e => deepEqual(e.from, cell) || deepEqual(e.to, cell));
     const dim = cellDimensions();
 
@@ -165,39 +224,40 @@ function handleClick(x, y) {
 
     // identify closest wall
     let relation = JSON.parse(JSON.stringify(cell));
+
     let distance = dim.width + dim.height;
     if (rx < distance) {
         distance = rx;
-        relation = cell;
-        relation.x = cell.x - 1;
+        relation = JSON.parse(JSON.stringify(cell));
+        relation.c= cell.c - 1;
     }
     if (ry < distance) {
         distance = ry;
-        relation = cell;
-        relation.y = cell.y - 1;
+        relation = JSON.parse(JSON.stringify(cell));
+        relation.r = cell.r - 1;
     }
     if (dim.width - rx < distance) {
         distance = dim.width - rx;
-        relation = cell;
-        relation.x = cell.x + 1;
+        relation = JSON.parse(JSON.stringify(cell));
+        relation.c = cell.c + 1;
     }
     if (dim.height - ry < distance) {
         distance = dim.height - ry;
-        relation = cell;
-        relation.y = cell.y + 1;
+        relation = JSON.parse(JSON.stringify(cell));
+        relation.r = cell.r + 1;
     }
 
-    if(gir(relation.y, 0, cell[0].length - 1) !== relation.y || gir(relation.x, 0, cell.length - 1) !== relation.x) {
+    if(gir(relation.r, 0, cells[0].length - 1) !== relation.r || gir(relation.c, 0, cells.length - 1) !== relation.c) {
         return;
     }
 
-    related = (related.filter(e => (e.from.x === relation.x && e.from.y === relation.y) || (e.to.x === relation.x && e.from.y === relation.y)) || [false])[0];
+    related = (related.filter(e => (e.from.c === relation.c && e.from.r === relation.r) || (e.to.c === relation.c && e.to.r === relation.r)) || [false])[0];
 
 
-    // Handle all possibilites
+    // Handle all possibilities
     // The wall is currently solid
     // Make the wall oneway facing towards
-    if (related === false) {
+    if (!related) {
         walls.push({
             from: relation,
             to: cell,
@@ -208,7 +268,7 @@ function handleClick(x, y) {
     }
     // The wall is currently facing away
     // Make the wall face the other way
-    if (related.type === config.walls.oneway && deepEqual(related.from, cell)) {
+    if (related.type === config.walls.oneway && related.from.r === cell.r && related.from.c === cell.c) {
         for (let i = 0; i < walls.length; i++) {
             if (walls[i].id === related.id) {
                 let temp = walls[i].from;
