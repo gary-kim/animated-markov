@@ -111,7 +111,7 @@ function draw() {
         `Current: ${status.mode}`,
         `Dimensions: (${cells.length}, ${cells[0].length})`,
         ``,
-        ...generateTransitionMatrix()
+        ...generateTransitionMatrix().map(a => a.map(b => b.toFixed(1)))
     ];
     messagediv.innerText = message.join("\n");
 
@@ -121,6 +121,7 @@ function draw() {
     ctx.style = 'rgb(0, 0, 0)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    ctx.font = `${0.2 * dim.height}px sans-serif`;
     // Draw cells
     for(let c = 0; c < cells.length; c++) {
         for(let r = 0; r < cells[c].length; r++) {
@@ -279,6 +280,7 @@ function generateTransitionMatrix() {
                     if (deepEqual(e.to, thisCell) || (deepEqual(e.from, thisCell) && e.type === config.walls.open)) {
                         tocon = true;
                         column.push(1.0 / related.length);
+                        break;
                     }
                 }
                 if (tocon) {
