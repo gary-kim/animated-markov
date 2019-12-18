@@ -101,7 +101,9 @@ function draw() {
     // messages
     let message = [
         `Current: ${status.mode}`,
-        `Dimensions: (${cells.length}, ${cells[0].length})`
+        `Dimensions: (${cells.length}, ${cells[0].length})`,
+        ``,
+        ...generateTransitionMatrix()
     ];
     messagediv.innerText = message.join("\n");
 
@@ -150,7 +152,6 @@ function draw() {
         }
     }
     ctx.restore();
-    // TODO: Draw oneway and open walls
 }
 
 /**
@@ -195,6 +196,67 @@ function cellDimensions() {
     return {
         width: canvas.width / cells.length,
         height: canvas.height / cells[0].length
+    }
+}
+
+/**
+ * Generate the Markov transition matrix with the current settings
+ */
+function generateTransitionMatrix() {
+    let tr = [];
+    for (let c = 0; c < cells.length; c++) {
+        let column = [];
+        for (let r = 0; r < cells[0].length; r++) {
+            column.push(generateColumn(c, r));
+        }
+        tr.push(...column);
+    }
+    return tr;
+    function generateColumn(c, r) {
+        let column = [];
+        let currentCell = {
+            r: r,
+            c: c
+        };
+        let related = walls.filter(e => deepEqual(e.from, currentCell) || (deepEqual(e.to, currentCell) && e.type === config.walls.open));
+        console.log(`At [${c},${r}], ${JSON.stringify(related)} are related`)
+        for (let ic = 0; ic < cells.length; ic++) {
+            for (let ir = 0; ir < cells[0].length; ir++) {
+                let thisCell = {
+                    r: ir,
+                    c: ic
+                };
+                let tocon = false;
+                for (let i = 0; i < related.length; i++) {
+                    let e = related[i];
+                    if (deepEqual(e.to, thisCell) || (deepEqual(e.from, thisCell) && e.type === config.walls.open)) {
+                        tocon = true;
+                        column.push(1.0 / related.length);
+                    }
+                }
+                if (tocon) {
+                    continue;
+                }
+                column.push(0);
+            }
+        }
+
+        // Case for no walls that are related and a special case when all walls that are related are oneways that go to this cell
+        let allAboard = true;
+        for (let i = 0; i < related.length; i++) {
+            let e = related[i];
+            if (e.type === config.walls.open || (e.type === config.walls.oneway && deepEqual(e.from, currentCell))) {
+                allAboard = false;
+                continue;
+            }
+        }
+        if (related.length === 0 || allAboard) {
+            column[c * 3 + r] = 1;
+            return column;
+        }
+
+        column[c * 3 + r] = 0;
+        return column;
     }
 }
 
