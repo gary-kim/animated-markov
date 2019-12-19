@@ -64,6 +64,16 @@ function init() {
     Mousetrap.bind('p', () => {
         progress();
     });
+    Mousetrap.bind('n', () => {
+        let total = 0;
+        for (let c = 0; c < cells.length; c++) {
+            for (let r = 0; r < cells[0].length; r++) {
+                total += cells[c][r];
+            }
+        }
+        cells = cells.map(a => a.map(b => b / total));
+        draw();
+    });
 
 
     // Click Handler
